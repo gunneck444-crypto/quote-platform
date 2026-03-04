@@ -9,6 +9,7 @@ export default function Home() {
   const [work, setWork] = useState('')
   const [character, setCharacter] = useState('')
   const [category, setCategory] = useState('未分類')
+  const [filterCategory, setFilterCategory] = useState('すべて')
   const [quotes, setQuotes] = useState<any[]>([])
   const [user, setUser] = useState<User | null>(null)
   const router = useRouter()
@@ -27,17 +28,21 @@ export default function Home() {
     router.refresh()
   }
 
-  const fetchQuotes = async () => {
-    const { data } = await supabase
+  const fetchQuotes = async (filter = 'すべて') => {
+    let query = supabase
       .from('quotes')
       .select('*')
       .order('created_at', { ascending: false })
+    if (filter !== 'すべて') {
+      query = query.eq('category', filter)
+    }
+    const { data } = await query
     if (data) setQuotes(data)
   }
 
   useEffect(() => {
-    fetchQuotes()
-  }, [])
+    fetchQuotes(filterCategory)
+  }, [filterCategory])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -385,7 +390,27 @@ export default function Home() {
             ✦ 封印を施す ✦
           </button>
         </form>
-
+<div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
+          {['すべて', '漫画・アニメ', '哲学・思想', 'ビジネス・起業家', '科学者', '芸能・スポーツ', '政治・歴史', '未分類', 'その他'].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setFilterCategory(cat)}
+              style={{
+                background: filterCategory === cat ? 'linear-gradient(135deg, #3a0060, #6a0090)' : 'none',
+                border: '1px solid rgba(120,60,180,0.4)',
+                color: filterCategory === cat ? '#e8d5ff' : '#7a4fa0',
+                padding: '6px 14px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: '11px',
+                letterSpacing: '2px',
+                transition: 'all 0.3s',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
         <div className="list-header">
           <span className="list-title">封印された言霊</span>
           <div className="list-line" />
