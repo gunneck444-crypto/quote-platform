@@ -8,6 +8,7 @@ export default function Home() {
   const [content, setContent] = useState('')
   const [work, setWork] = useState('')
   const [character, setCharacter] = useState('')
+  const [category, setCategory] = useState('未分類')
   const [quotes, setQuotes] = useState<any[]>([])
   const [user, setUser] = useState<User | null>(null)
   const router = useRouter()
@@ -42,7 +43,7 @@ export default function Home() {
     e.preventDefault()
     const { error } = await supabase
       .from('quotes')
-      .insert([{ content, work_title: work, character_name: character }])
+   .insert([{ content, work_title: work, character_name: character, category }])
     if (error) {
       alert('【封印失敗】' + error.message)
     } else {
@@ -340,6 +341,23 @@ export default function Home() {
               onChange={(e) => setContent(e.target.value)}
               required
             />
+          </div>
+          <div style={{ marginTop: '16px' }}>
+            <label className="form-label">カテゴリ</label>
+            <select
+              className="form-input"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="未分類">未分類</option>
+              <option value="漫画・アニメ">漫画・アニメ</option>
+              <option value="哲学・思想">哲学・思想</option>
+              <option value="ビジネス・起業家">ビジネス・起業家</option>
+              <option value="科学者">科学者</option>
+              <option value="芸能・スポーツ">芸能・スポーツ</option>
+              <option value="政治・歴史">政治・歴史</option>
+              <option value="その他">その他</option>
+            </select>
           </div>
           <div className="form-row">
             <div className="form-group">
