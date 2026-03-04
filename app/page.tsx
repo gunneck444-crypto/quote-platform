@@ -53,7 +53,7 @@ export default function Home() {
       .from('bookmarks')
       .select('quote_id')
       .eq('user_id', user.id)
-   if (data) setBookmarks(data.map((b) => Number(b.quote_id)))
+    if (data) setBookmarks(data.map((b) => Number(b.quote_id)))
   }
 
   const toggleBookmark = async (quoteId: number) => {
@@ -110,15 +110,19 @@ export default function Home() {
     }
   }
 
-  const QuoteCard = ({ q, highlight = false }: { q: any, highlight?: boolean }) => (
-    <div className="quote-card" style={highlight ? { borderLeftColor: 'rgba(220, 100, 100, 0.6)' } : {}}>
+  const renderCard = (q: any, highlight = false) => (
+    <div
+      key={q.id}
+      className="quote-card"
+      style={highlight ? { borderLeftColor: 'rgba(220, 100, 100, 0.6)' } : {}}
+    >
       <div className="quote-symbol">❝</div>
       <p className="quote-content">{q.content}</p>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="quote-meta">
           {q.character_name}　／　{q.work_title}
         </div>
-     <button
+        <button
           onClick={() => toggleBookmark(Number(q.id))}
           style={{
             background: 'none',
@@ -133,7 +137,7 @@ export default function Home() {
         </button>
       </div>
     </div>
-  ) 
+  )
 
   return (
     <>
@@ -497,9 +501,7 @@ export default function Home() {
               <span className="list-title">あなたへの言霊</span>
               <div className="list-line" />
             </div>
-            {recommended.map((q) => (
-              <QuoteCard key={q.id} q={q} highlight={true} />
-            ))}
+            {recommended.map((q) => renderCard(q, true))}
           </div>
         )}
 
@@ -511,9 +513,7 @@ export default function Home() {
         {quotes.length === 0 ? (
           <div className="empty-state">— まだ言霊は封印されていない —</div>
         ) : (
-          quotes.map((q) => (
-            <QuoteCard key={q.id} q={q} />
-          ))
+          quotes.map((q) => renderCard(q))
         )}
       </div>
     </>
