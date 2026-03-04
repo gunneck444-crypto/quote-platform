@@ -118,8 +118,8 @@ export default function Home() {
         <div className="quote-meta">
           {q.character_name}　／　{q.work_title}
         </div>
-        <button
-          onClick={() => toggleBookmark(q.id)}
+     <button
+          onClick={() => toggleBookmark(Number(q.id))}
           style={{
             background: 'none',
             border: 'none',
@@ -133,7 +133,7 @@ export default function Home() {
         </button>
       </div>
     </div>
-  )
+  ) 
 
   return (
     <>
