@@ -12,6 +12,8 @@ export default function Home() {
   const [filterCategory, setFilterCategory] = useState('すべて')
   const [quotes, setQuotes] = useState<any[]>([])
   const [user, setUser] = useState<User | null>(null)
+  const [recommended, setRecommended] = useState<any[]>([])
+  const [bookmarks, setBookmarks] = useState<number[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -43,27 +45,51 @@ export default function Home() {
   useEffect(() => {
     fetchQuotes(filterCategory)
   }, [filterCategory])
-  const [recommended, setRecommended] = useState<any[]>([])
+
+  const fetchBookmarks = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase
+      .from('bookmarks')
+      .select('quote_id')
+      .eq('user_id', user.id)
+    if (data) setBookmarks(data.map((b) => b.quote_id))
+  }
+
+  const toggleBookmark = async (quoteId: number) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      router.push('/auth')
+      return
+    }
+    if (bookmarks.includes(quoteId)) {
+      await supabase.from('bookmarks').delete().eq('user_id', user.id).eq('quote_id', quoteId)
+      setBookmarks((prev) => prev.filter((id) => id !== quoteId))
+    } else {
+      await supabase.from('bookmarks').insert({ user_id: user.id, quote_id: quoteId })
+      setBookmarks((prev) => [...prev, quoteId])
+    }
+  }
+
+  useEffect(() => {
+    fetchBookmarks()
+  }, [user])
 
   const fetchRecommended = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     const { data: prefs } = await supabase
       .from('user_preferences')
       .select('*')
       .eq('user_id', user.id)
       .single()
-
     if (!prefs) return
-
     const { data } = await supabase
       .from('quotes')
       .select('*')
       .in('category', prefs.favorite_categories)
       .order('created_at', { ascending: false })
       .limit(5)
-
     if (data) setRecommended(data)
   }
 
@@ -75,7 +101,7 @@ export default function Home() {
     e.preventDefault()
     const { error } = await supabase
       .from('quotes')
-   .insert([{ content, work_title: work, character_name: character, category }])
+      .insert([{ content, work_title: work, character_name: character, category }])
     if (error) {
       alert('【封印失敗】' + error.message)
     } else {
@@ -83,6 +109,31 @@ export default function Home() {
       fetchQuotes()
     }
   }
+
+  const QuoteCard = ({ q, highlight = false }: { q: any, highlight?: boolean }) => (
+    <div className="quote-card" style={highlight ? { borderLeftColor: 'rgba(220, 100, 100, 0.6)' } : {}}>
+      <div className="quote-symbol">❝</div>
+      <p className="quote-content">{q.content}</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="quote-meta">
+          {q.character_name}　／　{q.work_title}
+        </div>
+        <button
+          onClick={() => toggleBookmark(q.id)}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '18px',
+            color: bookmarks.includes(q.id) ? '#c080ff' : '#4a2a6a',
+            transition: 'color 0.3s',
+          }}
+        >
+          🔖
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <>
@@ -417,7 +468,8 @@ export default function Home() {
             ✦ 封印を施す ✦
           </button>
         </form>
-<div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
           {['すべて', '漫画・アニメ', '哲学・思想', 'ビジネス・起業家', '科学者', '芸能・スポーツ', '政治・歴史', '未分類', 'その他'].map((cat) => (
             <button
               key={cat}
@@ -438,6 +490,7 @@ export default function Home() {
             </button>
           ))}
         </div>
+
         {user && recommended.length > 0 && (
           <div style={{ marginBottom: '48px' }}>
             <div className="list-header">
@@ -445,16 +498,11 @@ export default function Home() {
               <div className="list-line" />
             </div>
             {recommended.map((q) => (
-              <div key={q.id} className="quote-card" style={{ borderLeftColor: 'rgba(220, 100, 100, 0.6)' }}>
-                <div className="quote-symbol">❝</div>
-                <p className="quote-content">{q.content}</p>
-                <div className="quote-meta">
-                  {q.character_name}　／　{q.work_title}
-                </div>
-              </div>
+              <QuoteCard key={q.id} q={q} highlight={true} />
             ))}
           </div>
         )}
+
         <div className="list-header">
           <span className="list-title">封印された言霊</span>
           <div className="list-line" />
@@ -464,13 +512,7 @@ export default function Home() {
           <div className="empty-state">— まだ言霊は封印されていない —</div>
         ) : (
           quotes.map((q) => (
-            <div key={q.id} className="quote-card">
-              <div className="quote-symbol">❝</div>
-              <p className="quote-content">{q.content}</p>
-              <div className="quote-meta">
-                {q.character_name}　／　{q.work_title}
-              </div>
-            </div>
+            <QuoteCard key={q.id} q={q} />
           ))
         )}
       </div>
