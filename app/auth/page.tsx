@@ -19,7 +19,7 @@ export default function AuthPage() {
       if (error) {
         setMessage('【封印解除失敗】' + error.message)
       } else {
-        router.push('/')
+        router.push('/onboarding')
       }
     } else {
       const { error } = await supabase.auth.signUp({ email, password })
