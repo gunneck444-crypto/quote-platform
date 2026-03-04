@@ -53,7 +53,7 @@ export default function Home() {
       .from('bookmarks')
       .select('quote_id')
       .eq('user_id', user.id)
-    if (data) setBookmarks(data.map((b) => b.quote_id))
+   if (data) setBookmarks(data.map((b) => Number(b.quote_id)))
   }
 
   const toggleBookmark = async (quoteId: number) => {
@@ -125,7 +125,7 @@ export default function Home() {
             border: 'none',
             cursor: 'pointer',
             fontSize: '18px',
-            color: bookmarks.includes(q.id) ? '#c080ff' : '#4a2a6a',
+            color: bookmarks.includes(Number(q.id)) ? '#c080ff' : '#4a2a6a',
             transition: 'color 0.3s',
           }}
         >
