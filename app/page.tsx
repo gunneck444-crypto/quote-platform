@@ -43,6 +43,33 @@ export default function Home() {
   useEffect(() => {
     fetchQuotes(filterCategory)
   }, [filterCategory])
+  const [recommended, setRecommended] = useState<any[]>([])
+
+  const fetchRecommended = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: prefs } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!prefs) return
+
+    const { data } = await supabase
+      .from('quotes')
+      .select('*')
+      .in('category', prefs.favorite_categories)
+      .order('created_at', { ascending: false })
+      .limit(5)
+
+    if (data) setRecommended(data)
+  }
+
+  useEffect(() => {
+    if (user) fetchRecommended()
+  }, [user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -411,6 +438,23 @@ export default function Home() {
             </button>
           ))}
         </div>
+        {user && recommended.length > 0 && (
+          <div style={{ marginBottom: '48px' }}>
+            <div className="list-header">
+              <span className="list-title">あなたへの言霊</span>
+              <div className="list-line" />
+            </div>
+            {recommended.map((q) => (
+              <div key={q.id} className="quote-card" style={{ borderLeftColor: 'rgba(220, 100, 100, 0.6)' }}>
+                <div className="quote-symbol">❝</div>
+                <p className="quote-content">{q.content}</p>
+                <div className="quote-meta">
+                  {q.character_name}　／　{q.work_title}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="list-header">
           <span className="list-title">封印された言霊</span>
           <div className="list-line" />
