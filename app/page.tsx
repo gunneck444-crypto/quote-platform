@@ -1,12 +1,30 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { useRouter } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
 
 export default function Home() {
   const [content, setContent] = useState('')
   const [work, setWork] = useState('')
   const [character, setCharacter] = useState('')
   const [quotes, setQuotes] = useState<any[]>([])
+  const [user, setUser] = useState<User | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+    })
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+  }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.refresh()
+  }
 
   const fetchQuotes = async () => {
     const { data } = await supabase
@@ -193,21 +211,10 @@ export default function Home() {
           overflow: hidden;
         }
 
-        .submit-btn::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
-          opacity: 0;
-          transition: opacity 0.3s;
-        }
-
         .submit-btn:hover {
           box-shadow: 0 0 30px rgba(160, 0, 255, 0.3);
           border-color: rgba(200, 120, 255, 0.6);
         }
-
-        .submit-btn:hover::before { opacity: 1; }
 
         .list-header {
           display: flex;
@@ -301,6 +308,26 @@ export default function Home() {
           <div className="header-eyebrow">Grimoire of Eternal Words</div>
           <h1 className="header-title">魂の言霊<br/>封印書庫</h1>
           <div className="header-divider"><span>✦</span></div>
+          <div style={{ marginTop: '16px', fontSize: '12px', letterSpacing: '2px' }}>
+            {user ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+                <span style={{ color: '#7a4fa0' }}>{user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  style={{ background: 'none', border: '1px solid rgba(120,60,180,0.4)', color: '#a070d0', padding: '4px 12px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '11px', letterSpacing: '2px' }}
+                >
+                  離脱する
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => router.push('/auth')}
+                style={{ background: 'none', border: '1px solid rgba(120,60,180,0.4)', color: '#a070d0', padding: '6px 20px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '11px', letterSpacing: '3px' }}
+              >
+                ✦ 契約者としてログイン ✦
+              </button>
+            )}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="form-card">
