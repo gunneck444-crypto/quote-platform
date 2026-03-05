@@ -49,11 +49,11 @@ export default function Home() {
   const fetchBookmarks = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('bookmarks')
       .select('quote_id')
       .eq('user_id', user.id)
-    if (data) setBookmarks(data.map((b) => Number(b.quote_id)))
+if (data) setBookmarks(data.map((b) => Number(b.quote_id)))
   }
 
   const toggleBookmark = async (quoteId: number) => {
@@ -72,7 +72,11 @@ export default function Home() {
   }
 
   useEffect(() => {
-    fetchBookmarks()
+    if (user) {
+      fetchBookmarks()
+    } else {
+      setBookmarks([])
+    }
   }, [user])
 
   const fetchRecommended = async () => {
@@ -110,34 +114,6 @@ export default function Home() {
     }
   }
 
-  const renderCard = (q: any, highlight = false) => (
-    <div
-      key={q.id}
-      className="quote-card"
-      style={highlight ? { borderLeftColor: 'rgba(220, 100, 100, 0.6)' } : {}}
-    >
-      <div className="quote-symbol">❝</div>
-      <p className="quote-content">{q.content}</p>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div className="quote-meta">
-          {q.character_name}　／　{q.work_title}
-        </div>
-        <button
-          onClick={() => toggleBookmark(Number(q.id))}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '18px',
-            color: bookmarks.includes(Number(q.id)) ? '#c080ff' : '#4a2a6a',
-            transition: 'color 0.3s',
-          }}
-        >
-          🔖
-        </button>
-      </div>
-    </div>
-  )
 
   return (
     <>
@@ -501,7 +477,34 @@ export default function Home() {
               <span className="list-title">あなたへの言霊</span>
               <div className="list-line" />
             </div>
-            {recommended.map((q) => renderCard(q, true))}
+            {recommended.map((q) => (
+              <div
+                key={q.id}
+                className="quote-card"
+                style={{ borderLeftColor: 'rgba(220, 100, 100, 0.6)' }}
+              >
+                <div className="quote-symbol">❝</div>
+                <p className="quote-content">{q.content}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="quote-meta">
+                    {q.character_name}　／　{q.work_title}
+                  </div>
+                  <button
+                    onClick={() => toggleBookmark(Number(q.id))}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      opacity: bookmarks.includes(Number(q.id)) ? 1 : 0.2,
+                      transition: 'opacity 0.3s',
+                    }}
+                  >
+                    🔖
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -513,7 +516,33 @@ export default function Home() {
         {quotes.length === 0 ? (
           <div className="empty-state">— まだ言霊は封印されていない —</div>
         ) : (
-          quotes.map((q) => renderCard(q))
+          quotes.map((q) => (
+            <div
+              key={q.id}
+              className="quote-card"
+            >
+              <div className="quote-symbol">❝</div>
+              <p className="quote-content">{q.content}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="quote-meta">
+                  {q.character_name}　／　{q.work_title}
+                </div>
+                <button
+                  onClick={() => toggleBookmark(Number(q.id))}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    opacity: bookmarks.includes(Number(q.id)) ? 1 : 0.2,
+                    transition: 'opacity 0.3s',
+                  }}
+                >
+                  🔖
+                </button>
+              </div>
+            </div>
+          ))
         )}
       </div>
     </>
