@@ -377,6 +377,12 @@ if (data) setBookmarks(data.map((b) => Number(b.quote_id)))
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
                 <span style={{ color: '#7a4fa0' }}>{user.email}</span>
                 <button
+                  onClick={() => router.push('/bookmarks')}
+                  style={{ background: 'none', border: '1px solid rgba(120,60,180,0.4)', color: '#a070d0', padding: '4px 12px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '11px', letterSpacing: '2px' }}
+                >
+                  栞一覧
+                </button>
+                <button
                   onClick={handleLogout}
                   style={{ background: 'none', border: '1px solid rgba(120,60,180,0.4)', color: '#a070d0', padding: '4px 12px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '11px', letterSpacing: '2px' }}
                 >
