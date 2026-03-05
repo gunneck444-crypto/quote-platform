@@ -46,12 +46,6 @@ export default function Home() {
     fetchQuotes(filterCategory)
   }, [filterCategory])
 
-  const recordView = async (quoteId: number) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    await supabase.from('view_history').insert({ user_id: user.id, quote_id: quoteId })
-  }
-
   const fetchBookmarks = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -494,7 +488,7 @@ if (data) setBookmarks(data.map((b) => Number(b.quote_id)))
                 key={q.id}
                 className="quote-card"
                 style={{ borderLeftColor: 'rgba(220, 100, 100, 0.6)', cursor: 'pointer' }}
-                onClick={() => recordView(Number(q.id))}
+                onClick={() => router.push(`/quotes/${q.id}`)}
               >
                 <div className="quote-symbol">❝</div>
                 <p className="quote-content">{q.content}</p>
@@ -534,7 +528,7 @@ if (data) setBookmarks(data.map((b) => Number(b.quote_id)))
               key={q.id}
               className="quote-card"
               style={{ cursor: 'pointer' }}
-              onClick={() => recordView(Number(q.id))}
+              onClick={() => router.push(`/quotes/${q.id}`)}
             >
               <div className="quote-symbol">❝</div>
               <p className="quote-content">{q.content}</p>
