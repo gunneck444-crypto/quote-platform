@@ -14,6 +14,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null)
   const [recommended, setRecommended] = useState<any[]>([])
   const [bookmarks, setBookmarks] = useState<number[]>([])
+  const [commentCounts, setCommentCounts] = useState<Record<number, number>>({})
   const router = useRouter()
 
   useEffect(() => {
@@ -45,6 +46,22 @@ export default function Home() {
   useEffect(() => {
     fetchQuotes(filterCategory)
   }, [filterCategory])
+
+  useEffect(() => {
+    if (quotes.length === 0) return
+    const fetchCounts = async () => {
+      const { data } = await supabase
+        .from('comments')
+        .select('quote_id')
+        .in('quote_id', quotes.map((q) => q.id))
+      if (data) {
+        const counts: Record<number, number> = {}
+        data.forEach((c) => { counts[Number(c.quote_id)] = (counts[Number(c.quote_id)] || 0) + 1 })
+        setCommentCounts(counts)
+      }
+    }
+    fetchCounts()
+  }, [quotes])
 
   const fetchBookmarks = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -533,8 +550,15 @@ if (data) setBookmarks(data.map((b) => Number(b.quote_id)))
               <div className="quote-symbol">❝</div>
               <p className="quote-content">{q.content}</p>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="quote-meta">
-                  {q.character_name}　／　{q.work_title}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div className="quote-meta">
+                    {q.character_name}　／　{q.work_title}
+                  </div>
+                  {commentCounts[Number(q.id)] > 0 && (
+                    <span style={{ fontSize: '11px', letterSpacing: '1px', color: '#7a4fa0' }}>
+                      💬 {commentCounts[Number(q.id)]}
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); toggleBookmark(Number(q.id)) }}
