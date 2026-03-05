@@ -17,7 +17,7 @@ export default function QuoteDetailPage() {
     const init = async () => {
       const { data } = await supabase
         .from('quotes')
-        .select('*')
+        .select('*, works(id, title), characters(id, name)')
         .eq('id', id)
         .single()
       if (data) setQuote(data)
@@ -281,9 +281,10 @@ export default function QuoteDetailPage() {
 
       <div className="bg-layer" />
       <div className="container">
-        <button className="back-btn" onClick={() => router.back()}>
-          ← 戻る
-        </button>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '48px' }}>
+          <button className="back-btn" style={{ marginBottom: 0 }} onClick={() => router.back()}>← 戻る</button>
+          <button className="back-btn" style={{ marginBottom: 0 }} onClick={() => router.push('/')}>ホーム</button>
+        </div>
 
         <div className="detail-card">
           <div className="quote-symbol">❝</div>
@@ -293,11 +294,23 @@ export default function QuoteDetailPage() {
             <div className="meta-info">
               <div>
                 <div className="meta-label">使用者</div>
-                <div className="meta-value">{quote.character_name}</div>
+                <div
+                  className="meta-value"
+                  style={quote.character_id ? { cursor: 'pointer', textDecoration: 'underline dotted' } : {}}
+                  onClick={() => quote.character_id && router.push(`/characters/${quote.character_id}`)}
+                >
+                  {quote.characters?.name || quote.character_name}
+                </div>
               </div>
               <div style={{ marginTop: '16px' }}>
                 <div className="meta-label">作品</div>
-                <div className="meta-value">{quote.work_title}</div>
+                <div
+                  className="meta-value"
+                  style={quote.work_id ? { cursor: 'pointer', textDecoration: 'underline dotted' } : {}}
+                  onClick={() => quote.work_id && router.push(`/works/${quote.work_id}`)}
+                >
+                  {quote.works?.title || quote.work_title}
+                </div>
               </div>
               <div className="category-badge">{quote.category}</div>
             </div>
